@@ -1,18 +1,22 @@
 import Module from './module'
 import { assert, forEachValue } from '../util'
 
+// module的组织，操作
 export default class ModuleCollection {
   constructor (rawRootModule) {
     // register root module (Vuex.Store options)
+    // 注册根模块
     this.register([], rawRootModule, false)
   }
 
+  // 获得指定路径下的模块
   get (path) {
     return path.reduce((module, key) => {
       return module.getChild(key)
     }, this.root)
   }
 
+  // 比如[A,B,C]模块路径，在开启命名空间后，就会得到A/key/B/key/....
   getNamespace (path) {
     let module = this.root
     return path.reduce((namespace, key) => {
@@ -21,10 +25,12 @@ export default class ModuleCollection {
     }, '')
   }
 
+  //更新根module
   update (rawRootModule) {
     update([], this.root, rawRootModule)
   }
 
+  // 注册模块
   register (path, rawModule, runtime = true) {
     if (__DEV__) {
       assertRawModule(path, rawModule)
@@ -34,11 +40,14 @@ export default class ModuleCollection {
     if (path.length === 0) {
       this.root = newModule
     } else {
+      // 获得倒数第二个模块，作为模块
       const parent = this.get(path.slice(0, -1))
+      // 添加子模块
       parent.addChild(path[path.length - 1], newModule)
     }
 
-    // register nested modules
+// register nested modules
+// 如果传入的rawModule时有modules的，则递过注册
     if (rawModule.modules) {
       forEachValue(rawModule.modules, (rawChildModule, key) => {
         this.register(path.concat(key), rawChildModule, runtime)
@@ -46,6 +55,7 @@ export default class ModuleCollection {
     }
   }
 
+  // 根据路径，删除某个模块
   unregister (path) {
     const parent = this.get(path.slice(0, -1))
     const key = path[path.length - 1]
@@ -61,6 +71,7 @@ export default class ModuleCollection {
       return
     }
 
+    // 非运行时，无法卸载，比如根节点
     if (!child.runtime) {
       return
     }
@@ -68,6 +79,7 @@ export default class ModuleCollection {
     parent.removeChild(key)
   }
 
+  // 是否注册了某个模块（只能判断是否有这个名字）
   isRegistered (path) {
     const parent = this.get(path.slice(0, -1))
     const key = path[path.length - 1]
@@ -76,6 +88,7 @@ export default class ModuleCollection {
   }
 }
 
+// 更新某个路径下指定module
 function update (path, targetModule, newModule) {
   if (__DEV__) {
     assertRawModule(path, newModule)
@@ -85,6 +98,7 @@ function update (path, targetModule, newModule) {
   targetModule.update(newModule)
 
   // update nested modules
+  // 更新新module的子module，如果有
   if (newModule.modules) {
     for (const key in newModule.modules) {
       if (!targetModule.getChild(key)) {
@@ -122,12 +136,14 @@ const assertTypes = {
   actions: objectAssert
 }
 
+// 类型测试，判断getters，mutations，actions是否符合预期的类型，否则就打印错误
 function assertRawModule (path, rawModule) {
   Object.keys(assertTypes).forEach(key => {
     if (!rawModule[key]) return
 
     const assertOptions = assertTypes[key]
 
+    // 遍历模块的getters，mutations，actions断言测试
     forEachValue(rawModule[key], (value, type) => {
       assert(
         assertOptions.assert(value),
@@ -137,6 +153,7 @@ function assertRawModule (path, rawModule) {
   })
 }
 
+// 生成断言测试失败的信息
 function makeAssertionMessage (path, key, type, value, expected) {
   let buf = `${key} should be ${expected} but "${key}.${type}"`
   if (path.length > 0) {

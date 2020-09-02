@@ -1,10 +1,13 @@
 import { forEachValue } from '../util'
 
 // Base data struct for store's module, package with some attribute and method
+// 一个stroe的module的基本机构
 export default class Module {
   constructor (rawModule, runtime) {
+    // 标识是否能在运行时销毁，根模块时false不能销毁
     this.runtime = runtime
     // Store some children item
+    // 存储module,构建一个树状结构
     this._children = Object.create(null)
     // Store the origin module object which passed by programmer
     this._rawModule = rawModule
@@ -34,6 +37,7 @@ export default class Module {
     return key in this._children
   }
 
+  // 更新module
   update (rawModule) {
     this._rawModule.namespaced = rawModule.namespaced
     if (rawModule.actions) {
@@ -47,6 +51,7 @@ export default class Module {
     }
   }
 
+  // 以下都是遍历xx
   forEachChild (fn) {
     forEachValue(this._children, fn)
   }
