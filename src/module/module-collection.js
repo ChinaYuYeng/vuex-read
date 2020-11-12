@@ -1,7 +1,7 @@
 import Module from './module'
 import { assert, forEachValue } from '../util'
 
-// module的组织，操作
+// module的组织，操作，构造一个module树
 export default class ModuleCollection {
   constructor (rawRootModule) {
     // register root module (Vuex.Store options)

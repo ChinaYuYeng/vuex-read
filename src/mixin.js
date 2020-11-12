@@ -3,6 +3,7 @@ export default function (Vue) {
 
   if (version >= 2) {
     // 通过vue的beforeCreate混入vuex的逻辑
+    // 全局混入
     Vue.mixin({ beforeCreate: vuexInit })
   } else {
     // override init and inject vuex init procedure

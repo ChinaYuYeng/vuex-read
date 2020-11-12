@@ -5,6 +5,7 @@ import { forEachValue, isObject, isPromise, assert, partial } from './util'
 
 let Vue // bind on install
 
+// 收集所有module下的数据（state，mutatus,action...）到store下 ，形成一个个键值对 -> 各个组件按照key来获取state，getter，action，mutation
 export class Store {
   constructor (options = {}) {
     // Auto install if it is not done yet and `window` has `Vue`.
@@ -31,7 +32,7 @@ export class Store {
     this._actionSubscribers = []
     this._mutations = Object.create(null)
     this._wrappedGetters = Object.create(null)
-    // 注册模块数据
+    // 构造模块树
     this._modules = new ModuleCollection(options)
     // 模块的命名空间
     this._modulesNamespaceMap = Object.create(null)
@@ -60,7 +61,8 @@ export class Store {
     // init root module.
     // this also recursively registers all sub-modules
     // and collects all module getters inside this._wrappedGetters
-    // 把module下的属性添加到store下
+    // 收集所有module下的数据（state，mutatus,action...）到store下，用key的不同加以区分，形成一个个键值对，方便获取调用
+    // 
     installModule(this, state, [], this._modules.root)
 
     // initialize the store vm, which is responsible for the reactivity
@@ -70,6 +72,7 @@ export class Store {
 
     // apply plugins
     // 调用plugins，可以加入额外的功能，具体官方文档
+    // 插件就是在整个程序设计中可扩展部分的补充功能。这里可以深入到各种守卫，订阅各种动作
     plugins.forEach(plugin => plugin(this))
 
     const useDevtools = options.devtools !== undefined ? options.devtools : Vue.config.devtools
@@ -370,7 +373,7 @@ function resetStoreVM (store, state, hot) {
   }
 }
 
-// 在store下递归添加模块的命名空间和模块的关系（_modulesNamespaceMap），添加state到rootstate，添加Mutation到_mutations
+// 在store下递归添加模块的命名空间和模块的关系（_modulesNamespaceMap），添加模块的state到rootstate，添加Mutation到_mutations
 // 添加action到_actions，注册getter到_wrappedGetters
 function installModule (store, rootState, path, module, hot) {
   const isRoot = !path.length
@@ -523,7 +526,7 @@ function makeLocalGetters (store, namespace) {
   return store._makeLocalGettersCache[namespace]
 }
 
-// 注册该命名空间下的mutation，mutation都是在同一个对象下的，只不过用key来区分是不是使用命名空间
+// 注册该命名空间下的mutation，所有的mutation都是在同一个对象下的，只不过用key来区分是不是使用命名空间
 function registerMutation (store, type, handler, local) {
   const entry = store._mutations[type] || (store._mutations[type] = [])
   entry.push(function wrappedMutationHandler (payload) {

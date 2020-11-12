@@ -3,7 +3,7 @@ const target = typeof window !== 'undefined'
   : typeof global !== 'undefined'
     ? global
     : {}
-// 这里是引入了浏览器安装的devtool，devtool成功开启会设置一个全局变量，这个逻辑应该是devtool的
+// 这里是引入了浏览器安装的devtool，devtool成功开启会设置一个全局变量，用于判断vuex是否开启和devtool通信
 const devtoolHook = target.__VUE_DEVTOOLS_GLOBAL_HOOK__
 
 export default function devtoolPlugin (store) {
@@ -17,6 +17,7 @@ export default function devtoolPlugin (store) {
     store.replaceState(targetState)
   })
 
+  // 订阅mutation和action动作
   store.subscribe((mutation, state) => {
     devtoolHook.emit('vuex:mutation', mutation, state)
   }, { prepend: true })
