@@ -163,6 +163,7 @@ export class Store {
     }
 
     // 调用action的方法，统统作为promise
+    // 一个命名空间下的action可以存放多个方法
     const result = entry.length > 1
       ? Promise.all(entry.map(handler => handler(payload)))
       : entry[0](payload)
